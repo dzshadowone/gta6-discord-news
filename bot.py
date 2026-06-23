@@ -3,6 +3,11 @@ import os
 
 WEBHOOK = os.environ["WEBHOOK_URL"]
 
-requests.post(WEBHOOK, json={
-    "content": "✅ TEST: Discord webhook is working"
+print("Sending test message...")
+
+r = requests.post(WEBHOOK, json={
+    "content": "✅ TEST MESSAGE: webhook is working"
 })
+
+print("Status code:", r.status_code)
+print("Response:", r.text)
