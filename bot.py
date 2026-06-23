@@ -1,14 +1,20 @@
 import os
 import requests
 
-print("START")
+print("STARTED")
 
 webhook = os.environ.get("WEBHOOK_URL")
-print("WEBHOOK EXISTS:", webhook is not None)
+print("WEBHOOK EXISTS:", bool(webhook))
 
-r = requests.post(webhook, json={
-    "content": "🚨 FINAL TEST: Discord webhook is working"
-})
+payload = {
+    "content": "🚨 TEST MESSAGE FROM GITHUB ACTIONS"
+}
 
-print("STATUS CODE:", r.status_code)
-print("RESPONSE:", r.text)
+try:
+    r = requests.post(webhook, json=payload)
+
+    print("STATUS CODE:", r.status_code)
+    print("RESPONSE TEXT:", r.text)
+
+except Exception as e:
+    print("ERROR:", str(e))
