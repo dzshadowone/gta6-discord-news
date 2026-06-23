@@ -1,7 +1,14 @@
 import os
+import requests
 
 print("START")
 
-print("ENV:", dict(os.environ))
+webhook = os.environ.get("WEBHOOK_URL")
+print("WEBHOOK EXISTS:", webhook is not None)
 
-print("WEBHOOK:", os.environ.get("WEBHOOK_URL"))
+r = requests.post(webhook, json={
+    "content": "🚨 FINAL TEST: Discord webhook is working"
+})
+
+print("STATUS CODE:", r.status_code)
+print("RESPONSE:", r.text)
