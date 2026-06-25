@@ -1,20 +1,15 @@
 import os
 import requests
 
-print("STARTED")
+WEBHOOK = os.environ["WEBHOOK_URL"]
 
-webhook = os.environ.get("WEBHOOK_URL")
-print("WEBHOOK EXISTS:", bool(webhook))
+# Example RSS feed
+rss = requests.get(
+    "https://www.rockstargames.com/newswire/rss"
+).text
 
 payload = {
-    "content": "🚨 TEST MESSAGE FROM GITHUB ACTIONS"
+    "content": "📰 New Rockstar News Available:\nhttps://www.rockstargames.com/newswire"
 }
 
-try:
-    r = requests.post(webhook, json=payload)
-
-    print("STATUS CODE:", r.status_code)
-    print("RESPONSE TEXT:", r.text)
-
-except Exception as e:
-    print("ERROR:", str(e))
+requests.post(WEBHOOK, json=payload)
