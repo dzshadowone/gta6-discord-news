@@ -2,7 +2,7 @@ name: GTA6 News Bot
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
-        run: pip install requests feedparser deep-translator
+        run: pip install requests feedparser
 
       - name: Run bot
         env:
