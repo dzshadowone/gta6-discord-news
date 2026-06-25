@@ -4,25 +4,35 @@ import feedparser
 
 WEBHOOK = os.environ["WEBHOOK_URL"]
 
-# GTA-focused source
-FEED_URL = "https://rockstarintel.com/feed/"
+FEEDS = [
+    "https://rockstarintel.com/feed/",
+    "https://www.gtabase.com/feed/",
+    "https://gta6updates.com/feed/"
+]
 
-feed = feedparser.parse(FEED_URL)
+articles = []
 
-if len(feed.entries) == 0:
+for feed_url in FEEDS:
+    feed = feedparser.parse(feed_url)
+
+    for entry in feed.entries:
+        articles.append(entry)
+
+if not articles:
     print("No articles found")
     exit()
 
-article = feed.entries[0]
+# Most recent article
+article = articles[0]
 
-title = article.title
-url = article.link
-summary = article.summary[:1000]
+title = article.get("title", "No title")
+url = article.get("link", "")
+summary = article.get("summary", "")[:1000]
 
 image = None
 
 if "media_content" in article:
-    image = article.media_content[0]["url"]
+    image = article.media_content[0].get("url")
 
 embed = {
     "title": title,
