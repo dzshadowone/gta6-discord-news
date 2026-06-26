@@ -2,6 +2,7 @@ import os
 import re
 import requests
 import feedparser
+from bs4 import BeautifulSoup
 
 WEBHOOK = os.environ["WEBHOOK_URL"]
 
@@ -13,7 +14,7 @@ FEEDS = [
 
 POSTED_FILE = "posted_urls.txt"
 
-# Charger les URLs déjà envoyées
+# Load already posted URLs
 if os.path.exists(POSTED_FILE):
     with open(POSTED_FILE, "r", encoding="utf-8") as f:
         posted_urls = set(line.strip() for line in f)
@@ -54,44 +55,36 @@ for feed_url in FEEDS:
             if url in posted_urls:
                 continue
 
-            summary = article.get("summary", "")[:3000]
+            summary = re.sub("<.*?>", "", article.get("summary", ""))[:3000]
 
-            # -----------------------------
-            # Find an image
-            # -----------------------------
             image = None
 
-            # media_content
-            if hasattr(article, "media_content"):
-                try:
-                    image = article.media_content[0]["url"]
-                except:
-                    pass
+            try:
+                response = requests.get(
+                    url,
+                    headers={"User-Agent": "Mozilla/5.0"},
+                    timeout=10
+                )
 
-            # media_thumbnail
-            if not image and hasattr(article, "media_thumbnail"):
-                try:
-                    image = article.media_thumbnail[0]["url"]
-                except:
-                    pass
+                soup = BeautifulSoup(response.text, "lxml")
 
-            # enclosure images
-            if not image and hasattr(article, "links"):
-                for link in article.links:
-                    if link.get("type", "").startswith("image"):
-                        image = link.get("href")
-                        break
+                og = soup.find("meta", property="og:image")
+                if og and og.get("content"):
+                    image = og["content"]
 
-            # Image inside summary HTML
-            if not image:
-                match = re.search(r'<img[^>]+src="([^"]+)"', article.get("summary", ""))
-                if match:
-                    image = match.group(1)
+                if not image:
+                    twitter = soup.find("meta", attrs={"name": "twitter:image"})
+                    if twitter and twitter.get("content"):
+                        image = twitter["content"]
+
+            except Exception as e:
+                print("Image error:", str(e))
 
             embed = {
                 "title": title,
                 "description": summary,
-                "url": url
+                "url": url,
+                "color": 3066993
             }
 
             if image:
@@ -115,7 +108,7 @@ for feed_url in FEEDS:
     except Exception as e:
         print("Feed error:", feed_url, str(e))
 
-# Sauvegarder les nouvelles URLs
+# Save posted URLs
 if new_urls:
     with open(POSTED_FILE, "a", encoding="utf-8") as f:
         for url in new_urls:
