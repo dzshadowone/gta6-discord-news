@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 import feedparser
 
@@ -55,13 +56,37 @@ for feed_url in FEEDS:
 
             summary = article.get("summary", "")[:3000]
 
+            # -----------------------------
+            # Find an image
+            # -----------------------------
             image = None
 
-            if "media_content" in article:
+            # media_content
+            if hasattr(article, "media_content"):
                 try:
                     image = article.media_content[0]["url"]
                 except:
                     pass
+
+            # media_thumbnail
+            if not image and hasattr(article, "media_thumbnail"):
+                try:
+                    image = article.media_thumbnail[0]["url"]
+                except:
+                    pass
+
+            # enclosure images
+            if not image and hasattr(article, "links"):
+                for link in article.links:
+                    if link.get("type", "").startswith("image"):
+                        image = link.get("href")
+                        break
+
+            # Image inside summary HTML
+            if not image:
+                match = re.search(r'<img[^>]+src="([^"]+)"', article.get("summary", ""))
+                if match:
+                    image = match.group(1)
 
             embed = {
                 "title": title,
